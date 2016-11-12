@@ -5,7 +5,7 @@ This is the source code of the pkmntcgdb.com website. It's written in Python - F
 The website has couple of endpoints, namely
 - Homepage _/_ _/index_
 - Card search _/cards_
-- User page _/u/<username>_
+- User page _/u/|username|_
 - User profile _/profile_
 - Login, SignUp, Logout _/login_ _/signup_ _/logout_
 
