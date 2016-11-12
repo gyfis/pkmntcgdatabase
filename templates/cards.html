@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Cards{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% if current_user.is_authenticated %}
+            {% set user_id = current_user.get_id() %}
+            {% set username = current_user.username %}
+        {% endif %}
+        <div class="row">
+            {% if current_user.is_authenticated %}
+                <div class="col-md-3 col-xs-12 text-md-left">
+                    <p>Cards owned: {{ total_number_of_cards_for_user(user_id) }}</p>
+                </div>
+            {% endif %}
+            <div class="{{ 'col-md-6' if current_user.is_authenticated else 'col-md-offset-1 col-md-10' }} col-xs-12">
+                <input type="search" id="searchBar" class="form-control" placeholder="Search for cards">
+            </div>
+            {% if current_user.is_authenticated %}
+                <div class="col-md-3 col-xs-12 text-md-right">
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-secondary dropdown-toggle" style="cursor: pointer" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Select a collection
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right text-right dropdown-collection" aria-labelledby="dropdownMenuLink">
+                            {% for collection in user_collections(user_id) %}
+                                <a class="dropdown-item" style="cursor: pointer" data-id="{{ collection['id'] }}" data-name="{{ collection['name'] }}">{{ collection['name'] }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% if current_user.is_authenticated %}
+            <div class="row">
+                <div class="col-xs-12">
+                    <hr>
+                    <h2 class="selected-collection">Adding into: {{ selected_collection_for_user(user_id)['name'] }}</h2>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <hr>
+    <div class="insert-cards">
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type=application/javascript>
+
+    $(function() {
+        $(".dropdown-collection a").click(function() {
+
+            var selectedCollection = $('.selected-collection');
+            var selectButton = $('#dropdownMenuLink');
+
+            if ($(this).attr('data-name') != selectedCollection.text().slice(13)) {
+                var collection_id = $(this).attr('data-id');
+                var collection_name = $(this).attr('data-name');
+                startButtonLoad(selectButton, 'Loading collection', true);
+
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: '/set_selected_collection',
+                    data: JSON.stringify({'collection_id': collection_id}),
+                    success: function () {
+                        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+                        $.ajax({
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            url: '/search_cards',
+                            data: JSON.stringify({'url': window.location.search, 'w': w}),
+                            success: function (data) {
+                                $('.insert-cards').html(data);
+
+                                selectedCollection.text('Adding into: ' + collection_name);
+                                endButtonLoad(selectButton, 'Select collection', false);
+                            },
+                            error: function (e) {
+                                console.log(e);
+                                endButtonLoad(selectButton, 'Select collection', false);
+                            }
+                        });
+                    }, error: function (e) {
+                        console.log(e);
+                        endButtonLoad(selectButton, 'Select collection', false);
+                    }
+                });
+
+            }
+        });
+
+
+        var searchBar = $('#searchBar');
+
+        var changeTimer = false;
+
+        var lastValue = searchBar.val();
+        setInterval(function () {
+            if (searchBar.val() != lastValue) {
+                lastValue = searchBar.val();
+                var params = GetUrlParams();
+
+                if (params['q'] == lastValue) return;
+
+                if (changeTimer !== false) clearTimeout(changeTimer);
+                var searchBarValue = searchBar.val();
+
+                changeTimer = setTimeout(function () {
+                    if (history.pushState) {
+                        if (searchBarValue) {
+                            history.pushState({}, '', window.location.pathname + '?q=' + searchBarValue );
+                        } else {
+                            history.pushState({}, '', window.location.pathname);
+                        }
+                    }
+
+                    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+                    $.ajax({
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        url: '/search_cards',
+                        data: JSON.stringify({'url': window.location.search, 'w': w}),
+                        success: function (data) {
+                            $('.insert-cards').html(data);
+                        },
+                        error: function (e) {
+                            console.log(e)
+                        }
+                    });
+                    changeTimer = false;
+                }, 300);
+            }
+        }, 50);
+
+    });
+
+    $(document).ready(function () {
+        var params = GetUrlParams();
+
+        var searchBar = $('#searchBar');
+        searchBar.val(params['q']);
+
+        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/search_cards',
+            data: JSON.stringify({'url': window.location.search, 'w': w}),
+            success: function (data) {
+                $('.insert-cards').html(data);
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    });
+
+    window.addEventListener('popstate', function() {
+        var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/search_cards',
+            data: JSON.stringify({"url": window.location.search, 'w': w}),
+            success: function (data) {
+                $('.insert-cards').html(data)
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-xs-12 col-md-offset-2 col-md-8">
+
+                <div class="page-header">
+                    <h1>RECENT CHANGES</h1>
+                    <hr>
+                </div>
+                <p>I've migrated the database to a new data source, which means - Evolutions, Kalos Starter and other missing cards should be included now.</p>
+                <p>It also added a lot of editions of cards - I'm thinking about redesigning the public set page, because there is so much editions for some sets it doesn't work anymore.</p>
+                <p>With the changes I've probably introduced a lot of bugs - so if you find anything, I'll be happy to hear about it at <a href="mailto:admin@pkmntcgdb.com">admin@pkmntcgdb.com</a>! Thanks</p>
+
+
+                <div class="page-header">
+                    <h1>Welcome to <b>pkmntcgdb</b></h1>
+                    <hr>
+                </div>
+
+                <p>This site is dedicated to catalog <b>every <i>english</i> pokemon tcg card edition</b> ever made, with corresponding <b>card image or scan.</b></p>
+                <p>Along with providing the most detailed pokemon card edition database, it easily allows you to <b>keep track of your card collection.</b></p>
+
+                <hr>
+
+                <h2>How it works?</h2>
+                <p>The site provides a searching field, where you can search by pokemon name, number or expansion set.</p>
+                <p>Say, you found a hidden <b>Azumarill</b> card from <b>steam siege</b> expansion set under your bed and you want to add it to your collection! Easy!</p>
+                <form class="form-inline">
+                    <input class="form-control text-center" disabled="disabled" type="text" placeholder="Search for cards" value="Azumarill Steam siege">
+                </form>
+                <p>The website searches through the database to find the corresponding Pokemon based on your query.</p>
+                <p>You'll see something like this: </p>
+
+                {% set single_card = find_card_with_code("xy11-77") %}
+                {% include 'widgets/single_card.jinja2' %}
+
+                <p>On the top you see the <b>card number</b>, <b>name</b> and <b>set</b> it belongs to.<br>Under the card, you can see the <b>list of editions</b> this card came in.</p>
+                <p>(Psst... you can <b>click the Pokeball</b> under the card image to switch the card edition images!)</p>
+                <p>After you create a <b>free user account</b>, you can <b>add this card to your collection</b>!</p>
+                <p>You can also have <b>multiple collections per account</b> - this might come in handy, for example if you want to keep track of the cards you have for trade, or to catalog the cards per binder!</p>
+                <p>The site then <b>keeps track of the cards you have</b>, and provides <b>simple charts</b> showing your completionist progress, if you're into that.</p>
+                <p>Say we have the listed Azumarill in reverse holo edition, and some normal cards too. Here's how a <b>steam siege progress chart</b> might look like.</p>
+
+                {% include 'widgets/single_chart.jinja2' %}
+                <p></p>
+                <p>You can see there are lines for <b>Normal</b> and <b>Reverse holo</b> editions, but also a line for <b>Set cards</b>.</p>
+                <p>The <b>Set cards</b> line shows the number of cards you have from the set, regardless of the edition.</p>
+
+                <p>You can also <b>share a link to your account</b> to post to your friends and <b>show your collection</b> to them!</p>
+                <p>There's also a <b>detailed view of one expansion set with checkboxes</b> on your public page.</p>
+
+                <hr>
+
+                <h2>But ... why?</h2>
+                <p>I've come across my own collection of pokemon cards I've collected when I was young - and being a techie and such, I wanted to catalog my collection online. I've looked left and right, and I couldn't find any solid existing solution - either the app missed reverse holos, or it didn't track multiple copies, or it was just super difficult to use.</p>
+
+                <hr>
+
+                <h2>HUGE THANKS AND CREDIT GOES TO</h2>
+                <p class="credit-title"><b>Adam Capriola</b></p>
+                <p class="credit-description">for creating and maintaining the great <a href="http://pkmncards.com">pkmncards</a></p>
+                <p class="credit-title"><b>jab2004 (of Reddit)</b></p>
+                <p class="credit-description">for creating and maintaining the amazing checklist of all the english cards</p>
+                <p class="credit-title"><b>Charlie Hurlocker</b> and <b>Samantha Gaskill</b></p>
+                <p class="credit-description">for making a collection and scans of the Fossil 1999-2000 cards</p>
+
+                <hr>
+
+                <h2>Contact</h2>
+                <p>If you have any questions about the site, suggestions for what you really need, any kind of feedback or you just find one of the bugs, you can write to <a href="mailto:admin@pkmntcgdb.com">admin@pkmntcgdb.com</a> and I'll get back to you as soon as possible!</p>
+                <hr>
+
+                <h2>Legality of the website</h2>
+                <p>I believe the usage of the content on this website is to be considered a <a href="https://en.wikipedia.org/wiki/Fair_Use">fair use</a>.<br>The copyright is held by the respective owners of the media.</p>
+                <div class="form-text"></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-xs-12">
+                <p>created and maintained with <i class="fa fa-heart"></i> by <a href="http://www.github.com/gyfis">gyfis</a></p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+    <div class="form-text"></div>
+    <div class="container text-center">
+        <div class="row text-center">
+            <div class="col-xs-12"><h1>Sign Up</h1></div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-offset-2 col-md-8">
+                <form class="form form-horizontal" action="" method="post" name="signup">
+                {{ form.hidden_tag() }}
+                    <p>
+                        <span>Username: use only alphanumeric characters, dash and underscore, the length should be between 4 - 25 characters</span>
+                        {{ form.username(class_="form-control") }}
+                    </p>
+                    <p>
+                        <span>Password: use only alphanumeric characters, dash and underscore</span>
+                        {{ form.password(class_="form-control") }}
+                    </p>
+                    <p>
+                        <span>Email address</span>
+                        {{ form.email(class_="form-control") }}
+                    </p>
+                    <p>
+                        <span>Collection name, only alphanum + spaces please (you can change the name later, default is 'My collection')</span>
+                        {{ form.collection_name(class_="form-control") }}
+                    </p>
+                    <p>
+                        <label>
+                            {{ form.remember_me(value="Remember me") }}
+                            Remember me
+                        </label>
+                    </p>
+                    <p>
+                        {{ form.signup(class_="btn btn-large btn-default btn-primary") }}
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

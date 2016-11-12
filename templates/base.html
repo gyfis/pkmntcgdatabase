@@ -1,0 +1,166 @@
+<html>
+<head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap-flex.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/normalize.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/font-awesome.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/styles.css')}}">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="apple-touch-icon-precomposed" href="{{ url_for('static', filename='favicon-152.png') }}">
+
+    <title>{% block title %}{% endblock %} - pkmntcgdb.com</title>
+    {% endblock %}
+</head>
+<body>
+    <script type=application/javascript src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script type=application/javascript src="{{ url_for('static', filename='js/tether.min.js') }}"></script>
+    <script type=application/javascript src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script type=application/javascript>
+        function CB(input) {
+            var path = "{{ url_for('static', filename='#') }}";
+            path = path.replace('%23', input.value);
+            document.getElementById(input.name).src = path;
+        }
+
+        function applyCssBackground(card) {
+            var types = card.className.split('pkmn-type-')[1].split('|');
+            $(card).css('background-color', colorForType(types[0], 0.3));
+            $(card).css('background-image', 'repeating-linear-gradient(120deg, transparent, transparent 30px, rgba(255,255,255,0.3) 30px, rgba(255,255,255,0.3) 60px), linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.0)), linear-gradient(90deg, ' + colorForType(types[0], 1.0) + ', ' + colorForType(types[types.length - 1], 1.0) + ')');
+        }
+
+        var button_sizes = {};
+
+        function startButtonLoad(button, text, no_animate) {
+            button_sizes[button] = button.outerWidth();
+
+            var tmpBtn = button.clone().append(text).css('opacity', '0.0').appendTo(button.parent());
+            var newWidth = tmpBtn.outerWidth();
+            tmpBtn.remove();
+
+            if (!no_animate) {
+                button.animate({width: newWidth}, {duration: 350});
+            }
+            button.html(text + ' <i class="fa fa-spinner fa-pulse"></i>');
+            button.prop('disabled', true);
+        }
+
+        function endButtonLoad(button, text, no_animate) {
+            if (!no_animate) {
+                button.animate({width: button_sizes[button]}, {duration: 350});
+            }
+
+            delete button_sizes[button];
+            button.text(text);
+            button.prop('disabled', false);
+        }
+
+        function colorForType(type, alpha) {
+            switch (type) {
+                case 'g':
+                    return 'rgba(181, 196, 118, ' + alpha + ')';
+                case 'r':
+                    return 'rgba(191, 128, 119, ' + alpha + ')';
+                case 'w':
+                    return 'rgba(151, 210, 219, ' + alpha + ')';
+                case 'l':
+                    return 'rgba(242, 227, 147, ' + alpha + ')';
+                case 'f':
+                    return 'rgba(222, 168, 140, ' + alpha + ')';
+                case 'p':
+                    return 'rgba(198, 159, 209, ' + alpha + ')';
+                case 'e':
+                    return 'rgba(223, 223, 223, ' + alpha + ')';
+                case 't':
+                    return 'rgba(223, 223, 223, ' + alpha + ')';
+                case 'c':
+                    return 'rgba(223, 223, 223, ' + alpha + ')';
+                case 'd':
+                    return 'rgba(158, 152, 163, ' + alpha + ')';
+                case 'm':
+                    return 'rgba(168, 178, 171, ' + alpha + ')';
+                case 'dr':
+                    return 'rgba(196, 188, 135, ' + alpha + ')';
+                case 'fa':
+                    return 'rgba(208, 158, 173, ' + alpha + ')';
+            }
+        }
+
+        $(function() {
+            var links = $("a.nav-link");
+
+            for (var i = 0; i < links.length; i++) {
+                var link = links[i];
+                if (link.href.indexOf(window.location['pathname']) !== -1 && window.location['pathname'] !== '/') {
+                    $(link).addClass('active');
+                } else if (window.location['pathname'] === '/' && link.href.indexOf('/index') !== -1) {
+                    $(link).addClass('active');
+                } else {
+                    $(link).removeClass('active');
+                }
+            }
+        });
+
+        function copyTextToClipboard(text) {
+            var textArea = document.createElement("textarea");
+
+            textArea.style.position = 'fixed';
+            textArea.style.top = 0;
+            textArea.style.left = 0;
+
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+
+            textArea.style.padding = 0;
+
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+
+            textArea.style.background = 'transparent';
+
+            textArea.value = text;
+
+            document.body.appendChild(textArea);
+
+            textArea.select();
+
+            document.execCommand('copy');
+
+            document.body.removeChild(textArea);
+        }
+
+        function GetUrlParams() {
+            var params = {};
+            location.search.substr(1).split("&").forEach(function(item) {var s = item.split("="), k = s[0], v = s[1] && decodeURIComponent(s[1]); (params[k] = params[k] || []).push(v)});
+            return params;
+        }
+
+        $(document).ready(function () {
+            $('#copy-address').click(function() {
+                var text = $(this).text();
+                var url = text.slice(text.indexOf('(') + 2, -2);
+                copyTextToClipboard(window.location.origin + url);
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+    {% include 'widgets/navbar.jinja2' %}
+
+    <div class="container text-xs-center">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+    </div>
+
+    {% block content %}{% endblock %}
+</body>
+</html>

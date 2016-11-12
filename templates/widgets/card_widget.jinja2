@@ -1,0 +1,263 @@
+{% if not cards %}
+    <div class="container text-center">
+        {% if searched_terms %}
+            <h3>No cards matching the search term found.</h3>
+        {% else %}
+            <h4>Search for pokemon cards using name, number of card or card set</h4>
+            <div class="row"><h5>Some search examples:</h5></div>
+            <div class="row"><i>alakazam</i></div>
+            <div class="row"><i>Jungle 37/64</i></div>
+            <div class="row"><i>team Rocket</i></div>
+            <div class="row"><i>Energy search 59/62</i></div>
+        {% endif %}
+    </div>
+{% else %}
+    {% include 'widgets/pagination.jinja2' %}
+    <div class="form-text"></div>
+    {% for row in cards|batch(per_line|int) %}
+        <div class="text-center card-container-parent">
+            {% for card_idx in range(per_line|int) %}
+                {% if row|length > card_idx %}
+                    {% set card = row[card_idx] %}
+                    <div class="card-container">
+                        <div class="pkmn-card pkmn-type-{{ card.type }}">
+                            <p>{{ card.number }}{{ '/' if card.cards_in_set else '' }}{{ card.cards_in_set }}, <b>{{ card.Name }}</b> <i>({{ card.card_set }})</i></p>
+                            <img id="{{ card.id }}" class="text-center poke-card-img" src="{{ url_for('static', filename=card.editions[0].image_url) }}" onerror="this.src='{{ url_for('static', filename='images/card_not_found.jpg') }}'" />
+                            <div class="card-editions-wrapper">
+                                <div class="form card-editions">
+                                    {% for edition in card.editions %}
+                                        <div class="card-edition">
+                                            <div class="card-edition-label">
+                                                <label class="poke-radio-label radio">
+                                                    <input class="poke-radio-input" {{ "checked" if loop.index == 1 else "" }} {{ '' if image_exists(edition.image_url) else 'disabled="disabled"' }} name={{ card.id }} value="{{ edition.image_url }}" card_number="{{ card.number }}" id="{{ unique_card_id(card) }}|{{ edition.type }}" type="radio" onclick="CB(this)">
+                                                    <label class="text-left" {{ '' if image_exists(edition.image_url) else 'style="pointer-events: none; cursor: not-allowed;"' }} for="{{ unique_card_id(card) }}|{{ edition.type }}"><span class="poke-radio-span"></span>{{ card_text_for_edition_type(edition.type) }}</label>
+                                                </label>
+                                            </div>
+                                            <div {{ '' if current_user.is_authenticated else 'style="pointer-events: none; opacity: 0.4;"'}} >
+                                                <div class="inline-flex">
+                                                    <div class="btn-pokemon-container">
+                                                        <button type="button" class="btn-pokemon btn-minun" {{ '' if card_count_for_edition_and_user(current_user.get_id(), card.id, selected_collection_for_user(current_user.get_id()).id, edition.type) else 'disabled="disabled"' }} data-type="minus" data-field="{{ unique_card_edition_id(card, edition.type) }}" ></button>
+                                                    </div>
+                                                    <div class="btn-pokemon-input">
+                                                        <input type="text" name="{{ unique_card_edition_id(card, edition.type) }}" class="form-control input-number number-pokemon" value="{{ card_count_for_edition_and_user(current_user.get_id(), card.id, selected_collection_for_user(current_user.get_id()).id, edition.type) }}" min="0" >
+                                                    </div>
+                                                    <div class="btn-pokemon-container">
+                                                        <button type="button" class="btn-pokemon btn-plusle" data-type="plus" data-field="{{ unique_card_edition_id(card, edition.type) }}"></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card-container"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <div class="form-text"></div>
+    {% include 'widgets/pagination.jinja2' %}
+    <div class="form-text"></div>
+{% endif %}
+
+<script type="application/javascript">
+
+    var cards = $('.pkmn-card');
+
+    for (var i = 0, len = cards.length; i < len; i++) {
+        applyCssBackground(cards[i]);
+    }
+
+    $(document).ready(function () {
+        $(".dropdown-cards-per-line a").click(function() {
+            var selectedCount = $(this).data('id');
+            var params = GetUrlParams();
+            var currentCount = params['per_line'];
+
+            if (selectedCount == currentCount) return;
+            startButtonLoad($(this).parent().prev(), 'Loading ...');
+
+            var path = window.location.pathname + '?q=' + params['q'];
+
+            var page = params['page'];
+            if (typeof page !== 'undefined') {
+                path += '&page=' + page;
+            }
+
+            path += '&per_line=' + selectedCount;
+
+            if (history.pushState) {
+                history.pushState({}, '', path);
+            }
+
+            var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: '/search_cards',
+                data: JSON.stringify({'url': window.location.search, 'w': w}),
+                success: function (data) {
+                    endButtonLoad($(this).parent().prev(), 'Cards per row');
+                    $('.insert-cards').html(data);
+                },
+                error: function (e) {
+                    endButtonLoad($(this).parent().prev(), 'Cards per row');
+                    console.log(e)
+                }
+            });
+        });
+
+        $('.prevPage').click(function () {
+            startButtonLoad($(this), 'Loading prev page...');
+            var params = GetUrlParams();
+
+            var path = window.location.pathname + '?q=' + params['q'];
+
+            var page = params['page'];
+            if (typeof page === 'undefined') {
+                page = 1;
+            } else {
+                page--;
+            }
+            path += '&page=' + page;
+
+            var per_line = params['per_line'];
+            if (per_line != null) {
+                path += '&per_line=' + per_line;
+            }
+
+            if (history.pushState) {
+                history.pushState({}, '', path);
+            }
+
+            var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: '/search_cards',
+                data: JSON.stringify({"url": window.location.search, 'w': w}),
+                success: function (data) {
+                    window.scrollTo(0, 0);
+                    $('.insert-cards').html(data);
+                    endButtonLoad($(this), 'Prev page');
+                },
+                error: function (e) {
+                    console.log(e);
+                    endButtonLoad($(this), 'Prev page');
+                }
+            });
+        });
+
+        $('.nextPage').click(function () {
+            startButtonLoad($(this), 'Loading next page...');
+            var params = GetUrlParams();
+
+            var path = window.location.pathname + '?q=' + params['q'];
+
+            var page = params['page'];
+            if (page == null) {
+                page = 2
+            } else {
+                page++;
+            }
+            path += '&page=' + page;
+
+            var per_line = params['per_line'];
+            if (per_line != null) {
+                path += '&per_line=' + per_line;
+            }
+
+            if (history.pushState) {
+                history.pushState({}, '', path );
+            }
+
+            var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: '/search_cards',
+                data: JSON.stringify({"url": window.location.search, 'w': w}),
+                success: function (data) {
+                    window.scrollTo(0, 0);
+                    $('.insert-cards').html(data);
+                    endButtonLoad($(this), 'Next page');
+                },
+                error: function (e) {
+                    console.log(e);
+                    endButtonLoad($(this), 'Next page');
+                }
+            });
+        });
+    });
+
+    $('.btn-pokemon').click(function (e) {
+        e.preventDefault();
+
+        var fieldName = $(this).attr('data-field');
+        var type = $(this).attr('data-type');
+        var input = $("input[name='" + fieldName + "']");
+        var currentVal = parseInt(input.val());
+        if (!isNaN(currentVal)) {
+            if (type == 'minus') {
+
+                if (currentVal > input.attr('min')) {
+                    input.val(currentVal - 1).change();
+                }
+                if (parseInt(input.val()) == input.attr('min')) {
+                    $(this).attr('disabled', true);
+                }
+
+            } else if (type == 'plus') {
+                input.val(currentVal + 1).change();
+            }
+        } else {
+            input.val(0);
+        }
+    });
+
+    var input_numbers = $('.input-number');
+
+    input_numbers.focusin(function () {
+        $(this).data('oldValue', $(this).val());
+    });
+
+    var changeTimer = false;
+
+    input_numbers.change(function () {
+
+        var minValue = parseInt($(this).attr('min'));
+        var valueCurrent = parseInt($(this).val());
+
+        if (!$.isNumeric(valueCurrent)) {
+            valueCurrent = 0;
+        }
+
+        var name = $(this).attr('name');
+        if (valueCurrent >= minValue) {
+            $(".btn-minun[data-field='" + name + "']").removeAttr('disabled')
+        } else {
+            $(this).val($(this).data('oldValue'));
+        }
+
+        if (changeTimer !== false) clearTimeout(changeTimer);
+
+        changeTimer = setTimeout(function () {
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: '/cards',
+                data: JSON.stringify({"card_ct_id": name, "user_id": "{{ current_user.get_id() }}", "collection_id": "{{ selected_collection_for_user(current_user.get_id())['id'] }}", "count": valueCurrent}),
+                dataType: 'json'
+            });
+            changeTimer = false;
+        }, 300);
+
+    });
+</script>

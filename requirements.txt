@@ -1,0 +1,8 @@
+Flask==0.11.1
+Flask-Login==0.3.2
+Flask-Misaka==0.4.1
+Flask-WTF==0.13.1
+joblib==0.10.2
+lxml==3.6.4
+rethinkdb==2.3.0.post6
+waitress==1.0.0

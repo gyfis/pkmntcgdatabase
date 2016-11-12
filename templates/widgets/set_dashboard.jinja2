@@ -1,0 +1,132 @@
+<div class="row secondary-panel">
+    <div class="col-xs-12">
+        <h2>Showing {{ 'collection: {}'.format(collection_name) if collection_name else 'all cards'}}</h2>
+    </div>
+</div>
+<hr>
+{% for row in ordered_sets|batch(3) %}
+    <div class="row">
+        {% for ordered_set in row %}
+            <div class="col-lg-4 col-md-6 col-xs-12 set-chart">
+                <a name="{{ sets[ordered_set]['normalized_card_set'] }}" class="set-chart-inner clickable-set">
+                    <div class="chart" data-circles="{{ sets[ordered_set]['data'] }}" data-set="{{ sets[ordered_set]['normalized_card_set'] }}"></div>
+                    <div class="row"><div class="col-xs-12"><h3>{{ sets[ordered_set]['card_set'] }}</h3></div></div>
+                    <hr>
+                    {% for line in sets[ordered_set]['lines'] %}
+                        <div class="row chart-description">
+                            <div class="col-xs-2 col-xs-offset-1">
+                                <span style="color: #{{ line[3] }}" class="fa fa-dot-circle-o fa-2x"></span>
+                            </div>
+                            <div class="col-xs-6">
+                                <span class="chart-text">{{ card_text_for_edition_type(line[0]) }}</span>
+                            </div>
+                            <div class="col-xs-3 chart-number">
+                                {{ line[1] }}/{{ line[2] }}
+                            </div>
+                        </div>
+                        {{ '<hr>' if loop.index == 1 else '' }}
+                    {% endfor %}
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+<script type="application/javascript">
+
+    var links = document.getElementsByClassName('clickable-set');
+
+    window.addEventListener('popstate', function() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/set_data',
+            data: JSON.stringify({"url": window.location.pathname}),
+            success: function (data) {
+                $('.insert-body-here').html(data)
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    });
+
+    $(links).click(function() {
+        var path = $(this).attr('name');
+        if (history.pushState) {
+            history.pushState({}, path, window.location.pathname + '/' + path);
+        }
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/set_data',
+            data: JSON.stringify({"url": window.location.pathname}),
+            success: function (data) {
+                $('.insert-body-here').html(data)
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    });
+
+
+    var els = document.getElementsByClassName('chart'); // get canvas
+    for (var i = 0; i < els.length; i++){
+        var el = els[i];
+        var data = el.getAttribute('data-circles');
+        data = data.split('$').map(function (str) {return str.split('#')});
+        var set_name = el.getAttribute('data-set');
+
+        var rotate = 0;
+        var size = 500;
+        var fullRadius = 150;
+        var fullLineWidth = 100;
+
+        var canvas = document.createElement('canvas');
+        $(canvas).addClass('chart-canvas');
+        var imgdiv = document.createElement('div');
+        $(imgdiv).addClass('chart-img-div');
+        var img = document.createElement('img');
+        $(img).addClass('chart-img');
+        img.src = "{{ url_for('static', filename='images/set_icons/#.png') }}".replace('%23', set_name);
+
+        if (typeof(G_vmlCanvasManager) !== 'undefined') {
+            G_vmlCanvasManager.initElement(canvas);
+        }
+
+        var ctx = canvas.getContext('2d');
+        canvas.width = canvas.height = size;
+
+        el.appendChild(imgdiv);
+        el.appendChild(canvas);
+        imgdiv.appendChild(img);
+
+        ctx.translate(size / 2, size / 2); // change center
+        ctx.rotate((-1 / 2 + rotate / 180) * Math.PI); // rotate -90 deg
+
+        //imd = ctx.getImageData(0, 0, 240, 240);
+        //var radius = (options.size - options.lineWidth) / 2;
+
+        var drawCircle = function(color, lineWidth, radius, percent) {
+            percent = Math.min(Math.max(0, percent || 1), 1);
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2 * percent, false);
+            ctx.strokeStyle = color;
+            ctx.lineCap = 'round'; // butt, round or square
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        };
+
+        var dataLength = data.length;
+        var circlePaddingPerc = 1.35;
+        var lineWidth = fullLineWidth / (dataLength * circlePaddingPerc); // - (fullLineWidth - (dataLength - 1) * circlePadding) / dataLength;
+
+        for (var data_idx = 0; data_idx < dataLength; data_idx++) {
+            var idx = dataLength - data_idx - 1;
+            drawCircle('#' + data[idx][4], lineWidth, fullRadius + data_idx * (lineWidth * circlePaddingPerc), 100 / 100);
+            if (data[idx][1] > 0) drawCircle('#' + data[idx][3], lineWidth, fullRadius + data_idx * (lineWidth * circlePaddingPerc), data[idx][1] / data[idx][2]);
+        }
+    }
+</script>

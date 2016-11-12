@@ -1,0 +1,149 @@
+<div class="row">
+    <div class="col-lg-3 col-lg-offset-1 col-xs-12">
+        <div class="row">
+            <div class="col-lg-6">
+                <a style="cursor: pointer" class="clickable-back">back to user</a><br>
+            </div>
+            <div class="col-lg-6">
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-primary btn-sm btn-pick pick-checkbox active">
+                    <input type="radio" name="options" id="option1" autocomplete="off" checked> ☒
+                    </label>
+                    <label class="btn btn-primary btn-sm btn-pick pick-numbers">
+                    <input type="radio" name="options" id="option2" autocomplete="off"> #
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-xs-12"><h3>Showing{{ ': {}'.format(collection_name) if collection_name else ' all cards'}}</h3></div>
+    <div class="col-md-4 col-xs-12"><h2>{{ set_name }}<img class="small-img" src="{{ url_for('static', filename='images/set_icons/{}.png'.format(normalized_set_name)) }}" onerror="this.src='{{ url_for('static', filename='images/card_set_not_found2.png') }}'"/></h2></div>
+</div>
+<hr>
+
+<div class="row text-sm-left text-xs-center set-table">
+    <div class="col-sm-3 col-lg-2 col-lg-offset-1 col-xs-4">
+        <div class="row">
+            <div class="col-xs-6"><b>#</b></div>
+            <div class="col-xs-6 rarity-symbol"><b><img src="{{ url_for('static', filename='images/rarity/Rarity_Rare.png') }}"/></b></div>
+        </div>
+    </div>
+    <div class="col-sm-3 col-xs-8 text-sm-left text-xs-right"><b>Name</b></div>
+    <div class="col-sm-6 col-lg-6 col-xs-12">
+        <div class="row text-center set-table-header">
+            {% for edition in editions %}
+                <div class="col-xs-2 ">{{ edition }}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<hr>
+{% for card in cards %}
+    <div class="row text-sm-left text-xs-center {{ 'set-pkmn-card-top' if loop.index != 1 else '' }} set-pkmn-card pkmn-type-{{ card.type }}">
+        <div class="col-sm-3 col-lg-2 col-lg-offset-1 col-xs-4">
+            <div class="row">
+                <div class="col-xs-6">{{ card.number }}</div>
+                <div class="col-xs-6 rarity-symbol"><img class="rarity-img" src="{{ url_for('static', filename='images/rarity/Rarity_#.png').replace('%23', RARITY_HASH[(card.rarity or 'bog')]) }}" /></div>
+            </div>
+        </div>
+        <div class="col-sm-3 col-xs-8 text-sm-left text-xs-right">{{ card.Name }}</div>
+        <div class="col-sm-6 col-lg-6 col-xs-12">
+            <div class="row text-center set-table-checkbox">
+                {% set outer_loop = loop %}
+                {% for edition in edition_keys %}
+                    {% set edition_count = card['edition_counts'][edition] or 0 %}
+                    <div data-name="{{ '{}_{}'.format(edition_count, '☒' if edition_count else '☐') if edition in card['edition_counts'] else '' }}" class="switchable col-xs-2 {{ ('set-column-first' if loop.index % 2 == 1 else 'set-column-second') if outer_loop.index % 2 == 1 else ('set-column-third' if loop.index % 2 == 1 else 'set-column-fourth') }}">
+                        {% if edition in card['edition_counts'] %}
+                            {{ '☒' if edition_count else '☐' }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+
+<script type="application/javascript">
+    var links_back = document.getElementsByClassName('clickable-back');
+    var pick_numbers = document.getElementsByClassName('pick-numbers');
+    var pick_checkbox = document.getElementsByClassName('pick-checkbox');
+
+    var switchables = document.getElementsByClassName('switchable');
+
+{#    var path = [window.location.pathname.split('?')[0]];#}
+
+    $(pick_numbers).click(function () {
+
+        for (var i = 0; i < switchables.length; i++) {
+            var switchable = $(switchables[i]);
+            var sw_data = switchable.attr('data-name');
+            if (sw_data !== '') {
+                switchable.text(sw_data.split('_')[0]);
+            }
+        }
+    });
+
+    function applyCssBackground(card) {
+        var types = card.className.split('pkmn-type-')[1].split('|');
+        $(card).css('background-color', colorForType(types[0], 0.3));
+        $(card).css('background-image',
+                'repeating-linear-gradient(190deg, transparent, transparent 30px, rgba(255,255,255,0.3) 30px, rgba(255,255,255,0.3) 60px), ' +
+                'linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.0)), ' +
+                'linear-gradient(270deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.2)), ' +
+                'linear-gradient(0deg, ' + colorForType(types[0], 1.0) + ', ' + colorForType(types[types.length - 1], 1.0) + ')');
+    }
+
+    var cards = $('.set-pkmn-card');
+
+    for (var i = 0, len = cards.length; i < len; i++) {
+        applyCssBackground(cards[i]);
+    }
+
+    $(pick_checkbox).click(function () {
+        for (var i = 0; i < switchables.length; i++) {
+            var switchable = $(switchables[i]);
+            var sw_data = switchable.attr('data-name');
+            if (sw_data !== '') {
+                switchable.text(sw_data.split('_')[1]);
+            }
+        }
+    });
+
+    window.addEventListener('popstate', function() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/set_data',
+            data: JSON.stringify({"url": window.location.pathname}),
+            success: function (data) {
+                $('.insert-body-here').html(data);
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    });
+
+    $(links_back).click(function() {
+        var path = window.location.pathname.split('/').slice(0, -1).join('/');
+        console.log(path);
+        if (history.pushState) {
+            history.pushState({}, path.split('/').splice(-2, 2).join('/'), path);
+        }
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/set_data',
+            data: JSON.stringify({"url": path}),
+            success: function (data) {
+                $('.insert-body-here').html(data)
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    });
+
+</script>

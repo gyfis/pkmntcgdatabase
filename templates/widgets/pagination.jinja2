@@ -1,0 +1,19 @@
+<div class="row text-center control-group pagerow secondary-panel">
+    <div class="col-xs-12 col-sm-offset-3 col-sm-6">
+        <button type="button" class="btn btn-secondary btn-default prevPage" {{ 'disabled' if page|string == '1' else ''}} >Prev page</button>
+        Page {{ page }}/{{ total_pages }}
+        <button type="button" class="btn btn-secondary btn-default nextPage" {{ 'disabled' if page|string == total_pages|string else ''}} >Next page</button>
+    </div>
+    <div class="col-xs-12 col-sm-3 text-left">
+        <div class="dropdown">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Cards per row
+            </button>
+            <div class="dropdown-menu dropdown-cards-per-line">
+                {% for i in range(10) %}
+                    <a class="dropdown-item" style="cursor: pointer" data-id="{{ i + 1 }}">{{ i + 1}}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

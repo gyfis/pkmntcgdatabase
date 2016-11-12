@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}User cards{% endblock %}
+
+{% block content %}
+    <div class="container text-center insert-head-here">
+    </div>
+    <div class="container-fluid text-center insert-body-here">
+    </div>
+    <hr>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script type="application/javascript">
+        $(document).ready(function () {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: '/set_data_head',
+                data: JSON.stringify({'url': window.location.pathname}),
+                success: function (data) {
+                    $('.insert-head-here').html(data);
+                },
+                error: function (e) {
+                    console.log(e)
+                }
+            });
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                url: '/set_data',
+                data: JSON.stringify({'url': window.location.pathname}),
+                success: function (data) {
+                    $('.insert-body-here').html(data);
+                },
+                error: function (e) {
+                    console.log(e)
+                }
+            });
+        });
+
+    </script>
+{% endblock %}

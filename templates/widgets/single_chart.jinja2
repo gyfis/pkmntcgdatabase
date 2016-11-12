@@ -1,0 +1,105 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-offset-3 col-md-6">
+            <div class="set-chart-inner-single clickable-set">
+                <div class="chart" data-circles="Set cards#6#116#b21212#e6cfcf$Normal#6#116#12b2b2#cfe6e6$Reverse holo#1#93#62b212#dae6cf" data-set="steam-siege"></div>
+                <div class="row"><div class="col-xs-12"><h3>Steam Siege</h3></div></div>
+                <hr>
+                <div class="row chart-description">
+                    <div class="col-xs-2 col-xs-offset-1">
+                        <span style="color: #b21212" class="fa fa-dot-circle-o fa-2x"></span>
+                    </div>
+                    <div class="col-xs-6">
+                        <span class="chart-text">Set cards</span>
+                    </div>
+                    <div class="col-xs-3 chart-number">
+                        6/116
+                    </div>
+                </div>
+                <hr>
+                <div class="row chart-description">
+                    <div class="col-xs-2 col-xs-offset-1">
+                        <span style="color: #12b2b2" class="fa fa-dot-circle-o fa-2x"></span>
+                    </div>
+                    <div class="col-xs-6">
+                        <span class="chart-text">Normal</span>
+                    </div>
+                    <div class="col-xs-3 chart-number">
+                        5/116
+                    </div>
+                </div>
+                <div class="row chart-description">
+                    <div class="col-xs-2 col-xs-offset-1">
+                        <span style="color: #62b212" class="fa fa-dot-circle-o fa-2x"></span>
+                    </div>
+                    <div class="col-xs-6">
+                        <span class="chart-text">Reverse holo</span>
+                    </div>
+                    <div class="col-xs-3 chart-number">
+                        1/93
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/javascript">
+    var els = document.getElementsByClassName('chart'); // get canvas
+    for (var i = 0; i < els.length; i++){
+        var el = els[i];
+        var data = el.getAttribute('data-circles');
+        data = data.split('$').map(function (str) {return str.split('#')});
+        var set_name = el.getAttribute('data-set');
+
+        var rotate = 0;
+        var size = 500;
+        var fullRadius = 150;
+        var fullLineWidth = 100;
+
+        var canvas = document.createElement('canvas');
+        $(canvas).addClass('chart-canvas');
+        var imgdiv = document.createElement('div');
+        $(imgdiv).addClass('chart-img-div');
+        var img = document.createElement('img');
+        $(img).addClass('chart-img');
+        img.src = "{{ url_for('static', filename='images/set_icons/#.png') }}".replace('%23', set_name);
+
+        if (typeof(G_vmlCanvasManager) !== 'undefined') {
+            G_vmlCanvasManager.initElement(canvas);
+        }
+
+        var ctx = canvas.getContext('2d');
+        canvas.width = canvas.height = size;
+
+        el.appendChild(imgdiv);
+        el.appendChild(canvas);
+        imgdiv.appendChild(img);
+
+        ctx.translate(size / 2, size / 2); // change center
+        ctx.rotate((-1 / 2 + rotate / 180) * Math.PI); // rotate -90 deg
+
+        //imd = ctx.getImageData(0, 0, 240, 240);
+        //var radius = (options.size - options.lineWidth) / 2;
+
+        var drawCircle = function(color, lineWidth, radius, percent) {
+            percent = Math.min(Math.max(0, percent || 1), 1);
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2 * percent, false);
+            ctx.strokeStyle = color;
+            ctx.lineCap = 'round'; // butt, round or square
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        };
+
+        var dataLength = data.length;
+        var circlePaddingPerc = 1.35;
+        var lineWidth = fullLineWidth / (dataLength * circlePaddingPerc); // - (fullLineWidth - (dataLength - 1) * circlePadding) / dataLength;
+
+        for (var data_idx = 0; data_idx < dataLength; data_idx++) {
+            var idx = dataLength - data_idx - 1;
+            drawCircle('#' + data[idx][4], lineWidth, fullRadius + data_idx * (lineWidth * circlePaddingPerc), 100 / 100);
+            if (data[idx][1] > 0) drawCircle('#' + data[idx][3], lineWidth, fullRadius + data_idx * (lineWidth * circlePaddingPerc), data[idx][1] / data[idx][2]);
+        }
+    }
+</script>

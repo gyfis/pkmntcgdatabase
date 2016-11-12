@@ -1,0 +1,50 @@
+<div class="container">
+    <div class="row text-center">
+        <div class="col-xs-offset-2 col-xs-8 card-container">
+            <div class="pkmn-card pkmn-type-{{ single_card.type }}" style="background-color: rgba(208, 158, 173, 0.3); background-image: repeating-linear-gradient(120deg, transparent, transparent 30px, rgba(255,255,255,0.3) 30px, rgba(255,255,255,0.3) 60px), linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.0)), linear-gradient(90deg, rgba(208, 158, 173, 1.0), rgba(151, 210, 219, 1.0));">
+                <p>{{ single_card.number }}{{ '/' if single_card.cards_in_set else '' }}{{ single_card.cards_in_set }}, <b>{{ single_card.Name }}</b> <i>({{ single_card.card_set }})</i></p>
+                <img id="{{ single_card.id }}" class="text-xs-center poke-card-img" src="{{ url_for('static', filename=single_card.editions[0].image_url) }}" onerror="this.src='{{ url_for('static', filename='images/card_not_found.jpg') }}'" />
+                <div class="card-editions-wrapper">
+                    <div class="form card-editions">
+                        <div class="row">
+                            <div class="col-xs-5 text-right">
+                                Card editions
+                            </div>
+                            <div class="col-xs-offset-1 col-xs-5 text-right" style="pointer-events: none; opacity: 0.4;" >
+                                Add to your collection
+                            </div>
+                        </div>
+                        {% for edition in single_card.editions %}
+                            <div class="card-edition">
+                                <div class="card-edition-label">
+                                    <label class="poke-radio-label radio">
+                                        <input class="poke-radio-input" {{ "checked" if loop.index == 1 else "" }} {{ '' if image_exists(edition.image_url) else 'disabled="disabled"' }} name={{ single_card.id }} value="{{ edition.image_url }}" card_number="{{ single_card.number }}" id="{{ unique_card_id(single_card) }}|{{ edition.type }}" type="radio" onclick="CB(this)">
+                                        <label class="text-left" {{ '' if image_exists(edition.image_url) else 'style="pointer-events: none; cursor: not-allowed;"' }} for="{{ unique_card_id(single_card) }}|{{ edition.type }}"><span class="poke-radio-span"></span>{{ card_text_for_edition_type(edition.type) }}</label>
+                                    </label>
+                                </div>
+                                <div style="pointer-events: none; opacity: 0.4;" >
+                                    <div class="inline-flex">
+                                        <div class="btn-pokemon-container">
+                                            <button type="button" class="btn-pokemon btn-minun"></button>
+                                        </div>
+                                        <div class="btn-pokemon-input">
+                                            <input type="text" name="{{ unique_card_edition_id(single_card, edition.type) }}" class="form-control input-number number-pokemon" value="0" min="0" >
+                                        </div>
+                                        <div class="btn-pokemon-container">
+                                            <button type="button" class="btn-pokemon btn-plusle" "></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/javascript">
+
+
+</script>

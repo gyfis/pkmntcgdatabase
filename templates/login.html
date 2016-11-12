@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    {{ super() }}
+    <div class="form-text"></div>
+    <div class="container text-xs-center">
+        <div class="row"><div class="col-xs-12"><h1>Login</h1></div></div>
+        <hr>
+        <div class="row">
+            <div class="col-md-offset-2 col-md-8">
+                <form class="form form-horizontal" action="" method="post" name="login">
+                {{ form.hidden_tag() }}
+                    <p>
+                        <span>Username</span>
+                        {{ form.username(class_="form-control") }}
+                    </p>
+                    <p>
+                        <span>Password</span>
+                        {{ form.password(class_="form-control") }}
+                    </p>
+                    <p>
+                        <label>
+                            {{ form.remember_me(value="Remember me") }}
+                            Remember me
+                        </label>
+                    </p>
+                    <p>
+                        {{ form.login(class_="btn btn-large btn-default btn-primary") }}
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,64 @@
+<div class="row">
+    <div class="col-md-4 col-xs-12 text-md-left">
+        <p>Cards owned: {{ total_number_of_cards_for_user(user_id) }}</p>
+    </div>
+    <div class="col-md-4 col-xs-12">
+        <h2>Cards of <i>{{ username }}</i></h2>
+    </div>
+    <div class="col-md-4 col-xs-12 text-md-right">
+        <div class="dropdown">
+            <a class="btn btn-secondary dropdown-toggle" href="http://example.com" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Select a collection
+            </a>
+
+            <div class="dropdown-menu dropdown-menu-right text-right dropdown-collection" aria-labelledby="dropdownMenuLink">
+                <a class="dropdown-item" style="cursor: pointer" >All cards</a>
+                <div class="dropdown-divider"></div>
+                {% for collection in user_collections(user_id) %}
+                    <a class="dropdown-item" style="cursor: pointer" name="{{ collection['name'] }}">{{ collection['name'] }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% if current_user and current_user.username_lower == username|lower %}
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <i>This is your profile! It's public, so go ahead and share the link to your friends!</i>
+        </div>
+    </div>
+{% endif %}
+
+<script type=application/javascript>
+     $(".dropdown-collection a").click(function(){
+        var collection_name = $(this).attr('name');
+        var path_arr = window.location.pathname.split('/');
+        for (var i = 0; i < path_arr.length; i++) {
+            path_arr[i] = path_arr[i].split('@')[0];
+        }
+
+
+        if (history.pushState) {
+            if (collection_name) {
+                path_arr[2] += '@' + collection_name;
+                history.pushState({}, '', path_arr.join('/'));
+            } else {
+                history.pushState({}, '', path_arr.join('/'));
+            }
+        }
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            url: '/set_data',
+            data: JSON.stringify({'url': window.location.pathname}),
+            success: function (data) {
+                $('.insert-body-here').html(data);
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+
+    });
+</script>

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <div class="modal fade" id="collection-modal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <button type="button" class="close"
+                       data-dismiss="modal">
+                           <span aria-hidden="true">&times;</span>
+                           <span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="collection-title">
+                        Collection
+                    </h4>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form class="form-horizontal" role="form">
+                      <div class="form-group">
+                        <label class="col-sm-2 control-label" for="collection-name">Collection name (use only alphanum chars and spaces, thanks!)</label>
+                        <div class="col-sm-10">
+                            <input class="form-control" id="collection-name" data-id='' data-type=''/>
+                        </div>
+                      </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="collection-close" data-dismiss="modal">
+                                Close
+                    </button>
+                    <button type="button" class="btn btn-primary" id="collection-save">
+                        Save changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header bg-warning">
+                    <button type="button" class="close"
+                       data-dismiss="modal">
+                           <span aria-hidden="true">&times;</span>
+                           <span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="delete-collection-title">
+                        Delete Collection?<br>(This will delete all submitted cards in this collection!)
+                    </h4>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="collecton-delete-close" data-dismiss="modal">
+                                Close
+                    </button>
+                    <button type="button" class="btn btn-primary" id="collection-delete">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container profile-collections">
+    </div>
+{% endblock %}
+{% block scripts %}
+    <script type=application/javascript>
+
+        $(document).ready(function () {
+            var collectionName = $('#collection-name');
+            var collectionSave = $('#collection-save');
+            var collectionClose = $('#collection-close');
+            var modalTitle = $('#collection-title');
+            var modal = $('#collection-modal');
+            var deleteModal = $('#delete-modal');
+
+            var collectionDelete = $('#collection-delete');
+            var collectionDeleteClose = $('#collection-delete-close');
+
+            var dataId = '';
+            var dataType = '';
+
+            collectionDelete.click(function() {
+                startButtonLoad(collectionDelete, 'Deleting collection... ');
+                collectionDeleteClose.prop('disabled', true);
+
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: '/delete_collection',
+                    data: JSON.stringify({
+                        'user_id': '{{ current_user.get_id() }}',
+                        'collection_id': dataId
+                    }),
+                    success: function () {
+                        endButtonLoad(collectionDelete, 'Delete');
+                        collectionDeleteClose.prop('disabled', false);
+                        deleteModal.modal('hide');
+                        loadCollections();
+                    }
+                });
+            });
+
+            collectionSave.click(function() {
+                if (collectionName.val() === '') {
+                    collectionName.val('Upper shelf');
+                    return
+                }
+
+                startButtonLoad(collectionSave, 'Saving collection... ');
+                collectionClose.prop('disabled', true);
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: '/collection',
+                    data: JSON.stringify({
+                        'op_type': dataType,
+                        'collection_name': collectionName.val(),
+                        'user_id': '{{ current_user.get_id() }}',
+                        'collection_id': dataId
+                    }),
+                    success: function () {
+                        endButtonLoad(collectionSave, 'Save changes');
+                        collectionClose.prop('disabled', false);
+                        modal.modal('hide');
+                        loadCollections();
+                    }
+                });
+            });
+
+            collectionName.keyup(function () {
+                collectionName.val(collectionName.val().replace(/[^a-zA-Z0-9 ]/gi, ''));
+            });
+
+            function loadCollections() {
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    url: '/profile_collections',
+                    success: function (data) {
+                        $('.profile-collections').html(data);
+
+                        $('.edit-collection-btn').click(function() {
+                            collectionName.val($(this).data('name'));
+                            dataId = $(this).data('id');
+                            dataType = 'edit';
+                            modalTitle.text('Edit your collection');
+                        });
+
+                        $('#add-collection-btn').click(function() {
+                            collectionName.val('');
+                            dataId = null;
+                            dataType = 'new';
+                            modalTitle.text('Add new collection');
+                        });
+
+                        $('.delete-collection-btn').click(function() {
+                            dataId = $(this).data('id');
+                        });
+                    }
+                });
+            }
+            loadCollections();
+        });
+    </script>
+{% endblock %}
