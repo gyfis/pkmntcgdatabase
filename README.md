@@ -30,4 +30,7 @@ There are some models used in the website. I should have used a more sql-like da
 Right now the website is pretty much stable, though there are no tests. Adding these would be great!
 Also, the ordering of Card editions is random right now, so that's something I'd like to change.
 
+# For running the site locally...
+You'd probably need to setup your own copy of the rethink database, with the models described above - if someone would like, I can provide a database blueprint/dump for that. You also need a **config.py** file with `SECRET_KEY = 'something'` for the sign up and login to work.
+
 I'll be happy for any ideas, reported issues and pull requests!
