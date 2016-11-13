@@ -12,7 +12,7 @@ class LoginForm(FlaskForm):
 
 class SignupForm(FlaskForm):
     username = StringField('username', validators=[Regexp(r'^[\w_-~]+$'), Length(min=4, max=25)])
-    password = PasswordField('password', validators=[Regexp(r'^[\w_-~]+$'), Length(min=6)])
+    password = PasswordField('password', validators=[Length(min=6)])
     email = StringField('email',  validators=[Email('This field requires a valid email address')])
     collection_name = StringField('collection', validators=[Regexp(r'^[a-zA-Z0-0 ]*$')])
     remember_me = BooleanField('remember_me', default=False)
