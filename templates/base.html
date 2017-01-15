@@ -25,6 +25,25 @@
       ga('send', 'pageview');
 
     </script>
+
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+    <script>
+    window.addEventListener("load", function(){
+    window.cookieconsent.initialise({
+      "palette": {
+        "popup": {
+          "background": "#0E4A86",
+          "text": "#ffffff"
+        },
+        "button": {
+          "background": "#cf5c78",
+          "text": "#ffffff"
+        }
+      },
+      "position": "bottom-right"
+    })});
+    </script>
 </head>
 <body>
     <script type=application/javascript src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
